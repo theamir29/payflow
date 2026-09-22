@@ -1,0 +1,19 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://payflow.109-205-176-124.sslip.io/api/:path*" },
+    { "source": "/swagger-ui/:path*", "destination": "https://payflow.109-205-176-124.sslip.io/swagger-ui/:path*" },
+    { "source": "/v3/api-docs", "destination": "https://payflow.109-205-176-124.sslip.io/v3/api-docs" },
+    { "source": "/v3/api-docs/:path*", "destination": "https://payflow.109-205-176-124.sslip.io/v3/api-docs/:path*" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "X-Frame-Options", "value": "DENY" }
+      ]
+    }
+  ]
+}
