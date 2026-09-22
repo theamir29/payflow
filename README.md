@@ -10,6 +10,14 @@ account at once, a retried request never charges twice, and there are tests that
 
 ![PayFlow web client: accounts, monthly chart and a printed receipt](docs/wallet.png)
 
+## Live demo
+
+- **Web client:** https://payflow-taupe-xi.vercel.app — or open the demo wallet straight away:
+  https://payflow-taupe-xi.vercel.app/?demo
+- **API docs (Swagger UI):** https://payflow-taupe-xi.vercel.app/swagger-ui/index.html
+- **Demo user:** `demo@payflow.uz` / `demo12345`, shared by everyone, so the data may have been changed
+  by other visitors. Register your own user for a clean wallet.
+
 ## Features
 
 - Registration and login with stateless JWT (Spring Security OAuth2 resource server, HS256)

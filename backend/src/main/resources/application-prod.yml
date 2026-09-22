@@ -2,3 +2,10 @@
 payflow:
   jwt:
     secret: ${JWT_SECRET}
+
+# API docs stay public on purpose: this instance is a portfolio demo.
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
