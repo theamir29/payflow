@@ -16,7 +16,7 @@ docker run -d --name payflow-api --restart unless-stopped --network host \
 
 echo "Waiting for the health check..."
 for _ in $(seq 1 30); do
-  if curl -sf http://127.0.0.1:8095/actuator/health | grep -q '"UP"'; then
+  if curl -sf http://127.0.0.1:8187/actuator/health | grep -q '"UP"'; then
     echo "PayFlow is up"
     exit 0
   fi

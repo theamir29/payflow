@@ -142,7 +142,7 @@ flowchart LR
     B[Browser] -->|HTML, CSS, JS| V[Vercel]
     B -->|/api/*| V
     V -->|rewrite over HTTPS| N[nginx + Let's Encrypt]
-    N -->|127.0.0.1:8095| A[Spring Boot in Docker]
+    N -->|127.0.0.1:8187| A[Spring Boot in Docker]
     A --> P[(PostgreSQL 16)]
 ```
 
