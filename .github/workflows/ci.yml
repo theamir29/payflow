@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: Build and test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Unit, integration and concurrency tests
+        run: mvn -B verify
+      - name: Keep test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: backend/target/surefire-reports
+
+  compose:
+    name: Docker Compose smoke test
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start PostgreSQL, API and nginx
+        run: docker compose up -d --build --wait --wait-timeout 240
+      - name: Log in as the demo user and read data through nginx
+        run: |
+          set -euo pipefail
+          token=$(curl -sf -X POST http://localhost:8080/api/auth/login \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"demo@payflow.uz","password":"demo12345"}' | jq -r .accessToken)
+          curl -sf http://localhost:8080/api/accounts -H "Authorization: Bearer $token" | jq -e 'length == 3'
+          curl -sf http://localhost:8080/api/operations -H "Authorization: Bearer $token" | jq -e '.totalItems > 0'
+          curl -sf http://localhost:8080/v3/api-docs | jq -e '.info.title == "PayFlow API"'
+          curl -sf http://localhost:8080/ | grep -q 'PayFlow'
+      - name: Container logs
+        if: failure()
+        run: docker compose logs
+      - name: Stop
+        if: always()
+        run: docker compose down -v
