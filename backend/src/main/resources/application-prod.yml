@@ -1,0 +1,4 @@
+# No fallback here: without JWT_SECRET in the environment the application refuses to start.
+payflow:
+  jwt:
+    secret: ${JWT_SECRET}

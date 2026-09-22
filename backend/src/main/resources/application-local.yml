@@ -1,0 +1,13 @@
+# Run without PostgreSQL: in-memory H2, demo data, and the web client served from ../frontend
+spring:
+  datasource:
+    url: jdbc:h2:mem:payflow;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH;LOCK_TIMEOUT=10000
+    username: sa
+    password:
+  web:
+    resources:
+      static-locations: file:../frontend/
+
+payflow:
+  demo:
+    enabled: true

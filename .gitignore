@@ -1,0 +1,18 @@
+# Build output
+backend/target/
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Local data and secrets
+backend/data/
+.env
+*.env
+!deploy/*.env.example
+
+# Vercel
+.vercel/

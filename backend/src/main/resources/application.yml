@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: payflow
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/payflow}
+    username: ${DB_USER:payflow}
+    password: ${DB_PASSWORD:payflow}
+  jpa:
+    open-in-view: false
+    hibernate:
+      # The schema is owned by Flyway; Hibernate only checks that the entities match it.
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  port: ${PORT:8080}
+  address: ${SERVER_ADDRESS:0.0.0.0}
+  forward-headers-strategy: framework
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    persist-authorization: true
+    operations-sorter: method
+
+payflow:
+  zone: Asia/Tashkent
+  jwt:
+    secret: ${JWT_SECRET:local-development-secret-do-not-use-in-prod}
+    ttl: 12h
+    issuer: payflow
+  demo:
+    enabled: ${DEMO_ENABLED:false}
