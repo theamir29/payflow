@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PayFlow — кошелёк</title>
+  <meta name="description" content="Демо-кошелёк на Java и Spring Boot: счета в UZS и USD, переводы, история, статистика.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231E4C9A'/%3E%3Cpath d='M9 22V10h7.5a4 4 0 0 1 0 8H13' stroke='%23fff' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ============ Вход ============ -->
+  <main id="auth-screen" class="auth" hidden>
+    <section class="auth__intro">
+      <p class="brand"><span class="brand__mark" aria-hidden="true">P</span>PayFlow</p>
+      <h1 class="auth__title">Кошелёк, у&nbsp;которого каждый перевод заканчивается чеком</h1>
+      <p class="auth__lead">Счета в сумах и долларах, переводы по номеру счёта, история операций и статистика по месяцам.
+        Бэкенд — Java 17 и Spring Boot, этот интерфейс — его клиент.</p>
+
+      <figure class="receipt receipt--sample" aria-hidden="true">
+        <div class="receipt__paper">
+          <p class="receipt__head">PAYFLOW · ЧЕК</p>
+          <p class="receipt__title">Перевод отправлен</p>
+          <dl class="receipt__rows">
+            <div><dt>Получатель</dt><dd>Азиз К.</dd></div>
+            <div><dt>Счёт</dt><dd>20206 000 ···· 3456</dd></div>
+            <div><dt>Комментарий</dt><dd>Аренда</dd></div>
+          </dl>
+          <p class="receipt__total"><span>Сумма</span><span>1 200 000,00 сум</span></p>
+          <p class="stamp">Исполнено</p>
+        </div>
+      </figure>
+    </section>
+
+    <section class="auth__panel">
+      <div class="demo-box">
+        <p class="demo-box__title">Посмотреть без регистрации</p>
+        <p class="demo-box__text">Демо-кошелёк с историей за пять месяцев.<br>
+          <span class="mono">demo@payflow.uz</span> · <span class="mono">demo12345</span></p>
+        <button type="button" class="btn btn--primary btn--wide" id="demo-login">Открыть демо-кошелёк</button>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="Вход или регистрация">
+        <button type="button" role="tab" class="tabs__tab" id="tab-login" aria-selected="true" aria-controls="login-form">Вход</button>
+        <button type="button" role="tab" class="tabs__tab" id="tab-register" aria-selected="false" aria-controls="register-form">Регистрация</button>
+      </div>
+
+      <form id="login-form" class="form" role="tabpanel" aria-labelledby="tab-login" novalidate>
+        <label class="field"><span class="field__label">Email</span>
+          <input name="email" type="email" autocomplete="email" required></label>
+        <label class="field"><span class="field__label">Пароль</span>
+          <input name="password" type="password" autocomplete="current-password" required></label>
+        <p class="form__error" role="alert"></p>
+        <button class="btn btn--ink btn--wide" type="submit">Войти</button>
+      </form>
+
+      <form id="register-form" class="form" role="tabpanel" aria-labelledby="tab-register" hidden novalidate>
+        <label class="field"><span class="field__label">Имя и фамилия</span>
+          <input name="fullName" autocomplete="name" required maxlength="100"></label>
+        <label class="field"><span class="field__label">Email</span>
+          <input name="email" type="email" autocomplete="email" required></label>
+        <label class="field"><span class="field__label">Пароль</span>
+          <input name="password" type="password" autocomplete="new-password" required minlength="8" maxlength="72">
+          <span class="field__hint">Не меньше 8 символов</span></label>
+        <p class="form__error" role="alert"></p>
+        <button class="btn btn--ink btn--wide" type="submit">Создать кошелёк</button>
+      </form>
+
+      <p class="auth__links"><a href="/swagger-ui/index.html" target="_blank" rel="noopener">API в Swagger</a> ·
+        <a href="https://github.com/theamir29/payflow" target="_blank" rel="noopener">Код на GitHub</a></p>
+    </section>
+  </main>
+
+  <!-- ============ Кошелёк ============ -->
+  <div id="app-screen" hidden>
+    <header class="topbar">
+      <p class="brand"><span class="brand__mark" aria-hidden="true">P</span>PayFlow</p>
+      <nav class="topbar__nav" aria-label="Ссылки">
+        <a href="/swagger-ui/index.html" target="_blank" rel="noopener">Swagger</a>
+        <a href="https://github.com/theamir29/payflow" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+      <p class="topbar__user"><span id="user-name"></span>
+        <button type="button" class="btn btn--ghost btn--small" id="logout">Выйти</button></p>
+    </header>
+
+    <main class="wallet">
+        <section class="wallet__accounts" aria-labelledby="accounts-title">
+          <div class="section-head">
+            <h2 id="accounts-title">Счета</h2>
+            <button type="button" class="btn btn--ghost btn--small" id="open-account">Открыть счёт</button>
+          </div>
+          <ul class="accounts" id="accounts"></ul>
+        </section>
+
+        <section class="wallet__chart" aria-labelledby="chart-title">
+          <div class="section-head">
+            <h2 id="chart-title">Приход и расход</h2>
+            <div class="segmented" role="group" aria-label="Валюта">
+              <button type="button" data-currency="UZS" aria-pressed="true">UZS</button>
+              <button type="button" data-currency="USD" aria-pressed="false">USD</button>
+            </div>
+          </div>
+          <div class="chart" id="chart"></div>
+          <p class="chart__legend"><span class="dot dot--in"></span>Приход <span class="dot dot--out"></span>Расход
+            <span class="muted">· за 6 месяцев, без переводов между своими счетами</span></p>
+        </section>
+
+        <section class="wallet__history" aria-labelledby="history-title">
+          <div class="section-head">
+            <h2 id="history-title">История</h2>
+            <div class="filters">
+              <label class="sr-only" for="filter-account">Счёт</label>
+              <select id="filter-account"><option value="">Все счета</option></select>
+              <label class="sr-only" for="filter-type">Тип</label>
+              <select id="filter-type">
+                <option value="">Все операции</option>
+                <option value="TRANSFER">Переводы</option>
+                <option value="DEPOSIT">Пополнения</option>
+              </select>
+            </div>
+          </div>
+          <ol class="history" id="history"></ol>
+          <div class="pager" id="pager"></div>
+        </section>
+
+      <aside class="wallet__side">
+        <div class="printer" id="printer" aria-live="polite">
+          <p class="printer__hint">Нажмите на операцию в истории, чтобы увидеть её чек.</p>
+        </div>
+
+        <section class="panel" aria-labelledby="transfer-title">
+          <h2 id="transfer-title">Перевод</h2>
+          <form id="transfer-form" class="form" novalidate>
+            <label class="field"><span class="field__label">Откуда</span>
+              <select name="fromAccountId" id="transfer-from" required></select></label>
+            <label class="field"><span class="field__label">Номер счёта получателя</span>
+              <input name="toAccountNumber" id="transfer-to" inputmode="numeric" autocomplete="off"
+                     placeholder="20 цифр" maxlength="24" required></label>
+            <p class="recipient" id="recipient" aria-live="polite"></p>
+            <p class="own-accounts" id="own-accounts"></p>
+            <label class="field"><span class="field__label">Сумма</span>
+              <input name="amount" id="transfer-amount" inputmode="decimal" autocomplete="off" required></label>
+            <label class="field"><span class="field__label">Комментарий</span>
+              <input name="description" maxlength="140" autocomplete="off"></label>
+            <p class="form__error" role="alert"></p>
+            <button class="btn btn--primary btn--wide" type="submit">Перевести</button>
+          </form>
+        </section>
+
+      </aside>
+    </main>
+  </div>
+
+  <!-- ============ Диалоги ============ -->
+  <dialog id="deposit-dialog" class="dialog">
+    <form method="dialog" class="form" id="deposit-form" novalidate>
+      <h2>Пополнить счёт</h2>
+      <p class="muted" id="deposit-account"></p>
+      <label class="field"><span class="field__label">Сумма</span>
+        <input name="amount" inputmode="decimal" autocomplete="off" required></label>
+      <label class="field"><span class="field__label">Комментарий</span>
+        <input name="description" maxlength="140" autocomplete="off"></label>
+      <p class="form__error" role="alert"></p>
+      <div class="dialog__actions">
+        <button class="btn btn--ghost" type="button" data-close>Отмена</button>
+        <button class="btn btn--primary" type="submit">Пополнить</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="account-dialog" class="dialog">
+    <form method="dialog" class="form" id="account-form" novalidate>
+      <h2>Открыть счёт</h2>
+      <label class="field"><span class="field__label">Валюта</span>
+        <select name="currency"><option value="UZS">Сум (UZS)</option><option value="USD">Доллар (USD)</option></select></label>
+      <label class="field"><span class="field__label">Название</span>
+        <input name="name" maxlength="60" required placeholder="Например, «На отпуск»"></label>
+      <p class="form__error" role="alert"></p>
+      <div class="dialog__actions">
+        <button class="btn btn--ghost" type="button" data-close>Отмена</button>
+        <button class="btn btn--primary" type="submit">Открыть счёт</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js" type="module"></script>
+</body>
+</html>
